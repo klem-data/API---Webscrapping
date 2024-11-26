@@ -10,6 +10,8 @@
 
   - All of the above
 
+==> All of the above, Django is a comprehensive framework, Flask is lightweight, and FastAPI is optimized for speed and asynchronous operations.
+
 - **Question 2:** _What's the main difference between Django, Flask and FastAPI in terms of performance and speed?_
 
   - Django is generally faster than Flask and FastAPI.
@@ -19,6 +21,9 @@
   - FastAPI is renowned for its increased speed and performance compared with Django and Flask.
 
   - Django, Flask and FastAPI have equivalent performance.
+
+==> FastAPI is renowned for its increased speed and performance compared with Django and Flask. It is built on asynchronous programming principles and leverages Pydantic for fast data validation, making it faster than Django and Flask for many use cases.
+
 
 - **Question 3:** What is an endpoint in the context of REST APIs?\*
 
@@ -30,6 +35,8 @@
 
   - A unique identifier assigned to each incoming request.
 
+==> A specific URL to which a request can be sent to interact with the API. It represents the location where a resource can be accessed and is defined by a unique URL.
+
 - **Question 4:** _What are the main HTTP verbs used to define REST API methods?_
 
   - GET, POST, PUT, PATCH, DELETE
@@ -39,6 +46,8 @@
   - READ, WRITE, MODIFY, DELETE
 
   - FETCH, INSERT, UPDATE, DELETE
+
+==> Answer: GET, POST, PUT, PATCH, DELETE. These HTTP verbs represent the most common operations in RESTful design: retrieving, creating, updating, partially updating, and deleting resources.
 
 - **Question 5:** _In the context of REST APIs, what does the term "middleware" mean?_
 
@@ -50,6 +59,8 @@
 
   - A method for securing data stored in the database.
 
+==> Intermediate software that processes the request before it reaches the main application. Middleware functions process requests and responses, often for tasks like logging, authentication, or validation.
+
 - **Question 6:** _Which Python library is often used to serialize and deserialize JSON data in the context of REST APIs?_
 
   - JSONify
@@ -59,6 +70,8 @@
   - json.dumps() and json.loads()
 
   - serializeJSON
+
+==>  json.dumps() and json.loads() These are standard Python library functions for converting Python objects to JSON and vice versa. 
 
 - **Question 7:** _What is the main use of the HTTP "PUT" method in the context of REST APIs?_
 
@@ -70,6 +83,10 @@
 
   - Read a specific resource.
 
+==> Update an existing resource, or create one if it doesn't exist. The PUT method is idempotent, meaning repeated calls with the same data have the same effect.
+
+
+
 - **Question 8:** In FastAPI, how do you define an endpoint to handle a POST request with JSON data?\*
 
   - @app.post("/endpoint")
@@ -79,6 +96,8 @@
   - @app.request("/endpoint")
 
   - @app.update("/endpoint")
+
+==> @app.post("/endpoint") decorator is used to define endpoints in FastAPI that handle POST requests.
 
 # Creating an API with FastAPI
 
