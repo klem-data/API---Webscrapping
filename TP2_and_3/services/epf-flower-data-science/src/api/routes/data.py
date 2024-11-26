@@ -80,8 +80,8 @@ async def preprocess_iris_data():
         df = pd.read_csv(dataset_path)
 
         # Separate features (X) and target variable (y)
-        X = df.drop("species", axis=1)  # Features: sepal_length, sepal_width, petal_length, petal_width
-        y = df["species"]  # Target: species
+        X = df.drop("Species", axis=1)  # Features: sepal_length, sepal_width, petal_length, petal_width
+        y = df["Species"]  # Target: species
 
         # Encode the target variable (species)
         label_encoder = LabelEncoder()
