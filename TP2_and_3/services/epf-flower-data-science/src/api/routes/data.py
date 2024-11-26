@@ -3,6 +3,8 @@ import kagglehub
 from pathlib import Path
 import os
 import pandas as pd
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
 
 router = APIRouter()
 DATA_PATH = Path("src/data")
@@ -56,4 +58,57 @@ async def load_iris_dataset():
         raise HTTPException(
             status_code=500,
             detail=f"Error loading dataset: {str(e)}"
+        )
+
+
+@router.get("/preprocess-iris", tags=["Datasets"])
+async def preprocess_iris_data():
+    """
+    Preprocess the Iris dataset (standardize features, encode labels, and split the dataset into training and test sets).
+    """
+    dataset_path = DATA_PATH / DATASET_NAME
+
+    # Check if the Iris dataset file exists
+    if not dataset_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Dataset '{DATASET_NAME}' not found. Please download it first."
+        )
+
+    try:
+        # Load the dataset as a pandas DataFrame
+        df = pd.read_csv(dataset_path)
+
+        # Separate features (X) and target variable (y)
+        X = df.drop("species", axis=1)  # Features: sepal_length, sepal_width, petal_length, petal_width
+        y = df["species"]  # Target: species
+
+        # Encode the target variable (species)
+        label_encoder = LabelEncoder()
+        y_encoded = label_encoder.fit_transform(y)
+
+        # Standardize the features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # Split the data into training and testing sets (80% train, 20% test)
+        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_encoded, test_size=0.2, random_state=42)
+
+        # Return the preprocessed data as JSON
+        return {
+            "message": "Data preprocessed successfully.",
+            "train_data": {
+                "features": X_train.tolist(),
+                "labels": y_train.tolist()
+            },
+            "test_data": {
+                "features": X_test.tolist(),
+                "labels": y_test.tolist()
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error preprocessing dataset: {str(e)}"
         )

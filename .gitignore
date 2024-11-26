@@ -1,3 +1,5 @@
 tp-api
 __pycache__
 *.pyc
+kaggle.json
+/TP2_and_3/services/epf-flower-data-science/src/config/kaggle.json
