@@ -1,0 +1,14 @@
+{
+    "iris_species": {
+        "name": "Iris species",
+        "url": "uciml/iris"
+    },
+    "iris_dataset": {
+        "name": "Iris dataset",
+        "url": "himanshunakrani/iris-dataset"
+    },
+    "titanic": {
+        "name": "Titanic Dataset",
+        "url": "heptapod/titanic"
+    }
+}
