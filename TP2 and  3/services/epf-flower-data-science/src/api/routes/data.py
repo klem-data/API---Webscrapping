@@ -6,6 +6,7 @@ import glob  # Utilisé pour rechercher des fichiers spécifiques
 import shutil  # Utilisé pour renommer des fichiers
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import HTMLResponse
+from fastapi import Form
 
 
 router = APIRouter()
@@ -13,6 +14,18 @@ router = APIRouter()
 DATA_FOLDER = "src/data"
 JSON_FOLDER = "src/config"
 DATASETS_JSON = os.path.join(JSON_FOLDER, "dataset.json")
+
+# Fonction pour lire le fichier JSON des datasets
+def load_datasets():
+    if os.path.exists(JSON_FOLDER):
+        with open(DATASETS_JSON, "r") as file:
+            return json.load(file)
+    return {}
+
+# Fonction pour sauvegarder le fichier JSON des datasets
+def save_datasets(datasets):
+    with open(DATASETS_JSON, "w") as file:
+        json.dump(datasets, file, indent=4)
 
 @router.get("/download-dataset/{dataset_name}", tags=["data"])
 def download_dataset(dataset_name: str):
@@ -94,45 +107,64 @@ def download_dataset(dataset_name: str):
         # Erreur 500 pour toute autre erreur
         raise HTTPException(status_code=503, detail=f"Error processing dataset: {str(e)}")
 
-
-@router.put("/update-dataset", tags=["data"])
-def update_dataset(dataset_name: str, new_data: dict = Body(...)):
+@router.get("/datasets", response_class=HTMLResponse, tags=["data"])
+def show_datasets():
     """
-    Updates or adds a dataset entry in `dataset.json`.
-
-    Args:
-        dataset_name (str): The name of the dataset to update or add.
-        new_data (dict): The new data for the dataset (must include `url`).
-
-    Returns:
-        dict: Confirmation message and the updated dataset.
+    Affiche un tableau HTML avec les datasets disponibles.
     """
-    # Load the current datasets.json
-    try:
-        with open(DATASETS_JSON, "r") as f:
-            datasets = json.load(f)
-    except FileNotFoundError:
-        datasets = {}  # If the file does not exist, start with an empty dictionary
+    datasets = load_datasets()
 
-    # Update or add the dataset
-    datasets[dataset_name] = new_data
+    if not datasets:
+        return HTMLResponse(content="<h1>Aucun dataset disponible</h1>", status_code=404)
 
-    # Save the changes back to the file
-    try:
-        with open(DATASETS_JSON, "w") as f:
-            json.dump(datasets, f, indent=4)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving to dataset.json: {str(e)}")
+    # Créer un tableau HTML pour afficher les datasets
+    table_content = "<table border='1' style='width:100%'><tr><th>Nom</th><th>URL</th></tr>"
 
-    return {
-        "message": f"Dataset '{dataset_name}' updated successfully.",
-        "updated_data": {dataset_name: new_data}
-    }
+    # Ajouter chaque dataset au tableau
+    for dataset_key, dataset_info in datasets.items():
+        table_content += f"""
+        <tr>
+            <td>{dataset_info['name']}</td>
+            <td><a href='https://www.kaggle.com/datasets/{dataset_info['url']}' target='_blank'>{dataset_info['url']}</a></td>
+        </tr>
+        """
+
+    table_content += "</table>"
+
+    return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Available Datasets</title>
+            <style>
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                }}
+                th, td {{
+                    padding: 8px;
+                    text-align: left;
+                    border: 1px solid #ddd;
+                }}
+                th {{
+                    background-color: #f2f2f2;
+                }}
+            </style>
+        </head>
+        <body>
+            <h1>Datasets Disponibles</h1>
+            {table_content}
+            <br><br>
+            <a href="/docs">Retour à la gestion </a>
+        </body>
+        </html>
+    """, status_code=200)
+
 
 @router.get("/manage-datasets", response_class=HTMLResponse, tags=["data"])
-def manage_datasets():
+def show_manage_datasets_form():
     """
-    Serves an HTML form to manage datasets in `dataset.json`.
+    Affiche un formulaire HTML pour entrer une URL de dataset Kaggle.
     """
     html_content = """
     <!DOCTYPE html>
@@ -141,15 +173,59 @@ def manage_datasets():
         <title>Manage Datasets</title>
     </head>
     <body>
-        <h1>Manage Datasets</h1>
-        <form action="/update-dataset" method="post">
+        <h1>Download Kaggle Dataset</h1>
+        <form action="/api/manage-datasets" method="post">
             <label for="dataset_name">Dataset Name:</label><br>
             <input type="text" id="dataset_name" name="dataset_name" required><br><br>
-            <label for="url">Dataset URL:</label><br>
-            <input type="text" id="url" name="url" required><br><br>
-            <button type="submit">Update Dataset</button>
+            <label for="dataset_url">Dataset URL:</label><br>
+            <input type="text" id="dataset_url" name="dataset_url" required><br><br>
+            <button type="submit">Add/Remove Dataset</button>
         </form>
     </body>
     </html>
     """
     return HTMLResponse(content=html_content)
+
+@router.post("/manage-datasets", response_class=HTMLResponse, tags=["data"])
+def manage_datasets(dataset_name: str = Form(...), dataset_url: str = Form(...)):
+    """
+    Gère les datasets dans le fichier JSON : ajouter ou supprimer un dataset basé sur l'URL.
+    
+    Args:
+        dataset_name (str): Le nom du dataset.
+        dataset_url (str): L'URL du dataset Kaggle.
+    
+    Returns:
+        HTMLResponse: Confirmation ou message d'erreur.
+    """
+    datasets = load_datasets()
+
+    # Vérifier si le dataset existe déjà
+    dataset_key = dataset_name.lower().replace(" ", "_")
+    
+    if dataset_key in datasets:
+        # Si le dataset existe déjà, le supprimer
+        del datasets[dataset_key]
+        message = f"Le dataset '{dataset_name}' a été supprimé."
+    else:
+        # Si le dataset n'existe pas, l'ajouter
+        datasets[dataset_key] = {
+            "name": dataset_name,
+            "url": dataset_url
+        }
+        message = f"Le dataset '{dataset_name}' a été ajouté avec succès."
+    
+    # Sauvegarde des datasets dans le fichier JSON
+    save_datasets(datasets)
+
+    # Retour à l'utilisateur avec un message de confirmation
+    return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <h1>{message}</h1>
+            <p>{message}</p>
+            <a href="/api/manage-datasets">Retour au formulaire</a>
+        </body>
+        </html>
+    """, status_code=200)
