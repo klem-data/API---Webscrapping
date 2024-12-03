@@ -1,0 +1,22 @@
+{
+    "pizza": {
+        "name": "Pizza",
+        "url": "mysarahmadbhat/pizza-place-sales",
+        "csv": "pizza.csv"
+    },
+    "iris_species": {
+        "name": "Iris species",
+        "url": "uciml/iris",
+        "csv": "iris_species.csv"
+    },
+    "iris_dataset": {
+        "name": "Iris dataset",
+        "url": "himanshunakrani/iris-dataset",
+        "csv": "iris_dataset.csv"
+    },
+    "titanic_dataset": {
+        "name": "Titanic Dataset",
+        "url": "heptapod/titanic",
+        "csv": "titanic_dataset.csv"
+    }
+}
