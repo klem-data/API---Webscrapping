@@ -13,7 +13,7 @@ class CamelCase(BaseModel):
         alias_generator = snake_2_camel
 
 
-class GenericCamelCase(GenericModel):
+class GenericCamelCase(BaseModel):
     class Config(BaseConfig):
         allow_population_by_field_name = True
         alias_generator = snake_2_camel
