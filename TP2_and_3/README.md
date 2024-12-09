@@ -164,9 +164,9 @@ About the API workflow:
 
 - **Step 11: Training the classification model:** Add an endpoint to train a classification model with the processed dataset as input and saved this model in the folder src/models.
 
-Jen suis la ! 
 - **Step 12: Prediction with Trained Model:** Add endpoint to make predictions with trained model and parameters. This endpoint have to send back the predictions as json.
 
+Jen suis la ! 
 - **Step 13: Create the Firestore collection:** Create the firestore collection "parameters" with the following parameters: "n_estimators", "criterion". The name of the document with the parameters have to be : parameters.
 
 - **Step 14: Retrieve parameters from Firestore:** Add an endpoint to retrieve parameters from Firestore.

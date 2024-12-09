@@ -11,8 +11,8 @@ import json
 from pydantic import BaseModel
 router = APIRouter()
 
-DATA_PATH = Path("src/data")
-DATASET_NAME = "iris.csv"
+DATA_PATH = Path("TP2_and_3/services/epf-flower-data-science/src/data")
+DATASET_NAME = "Iris.csv"
 DATASET_PATH = DATA_PATH / DATASET_NAME
 KAGGLE_CREDENTIALS = Path("src/config/kaggle.json")
 
@@ -20,14 +20,20 @@ MODEL_PATH = Path("src/models")
 MODEL_NAME = "logistic_regression_model.pkl"
 MODEL_FILE = MODEL_PATH / MODEL_NAME
 
+SPECIES_MAPPING = {
+    0: "Iris-setosa",
+    1: "Iris-versicolor",
+    2: "Iris-virginica"
+}
+
 with open("TP2_and_3/services/epf-flower-data-science/src/config/model_parameters.json", "r") as file:
     model_params = json.load(file)["LogisticRegression"]
 
 class IrisInput(BaseModel):
-    sepal_length: float
-    sepal_width: float
-    petal_length: float
-    petal_width: float
+    SepalLengthCm: float
+    SepalWidthCm: float
+    PetalLengthCm: float
+    PetalWidthCm: float
 
 @router.get("/datasets/{name}", tags=["Datasets"])
 async def download_dataset(name: str):
@@ -57,7 +63,7 @@ async def download_dataset(name: str):
         )
 
 @router.get("/load-iris-data", tags=["Datasets"], summary="Load Iris Dataset", description="Loads the Iris dataset as a JSON response.")
-async def load_iris_dataset(o):
+async def load_iris_dataset():
     """
     Load the Iris dataset as a pandas DataFrame and return it as a JSON response.
     """
@@ -127,38 +133,48 @@ def train_model():
             status_code=500,
             detail=f"Error training the model: {str(e)}"
         )
-
-@router.get("/predict", tags=["Model"])
+@router.post("/predict", tags=["Model"])
 def predict(input_data: IrisInput):
     """
     Make a prediction using the trained logistic regression model.
     """
     try:
+        print("Received input data:", input_data)  # Log received data
+        
         # Check if the model exists
-        if not MODEL_PATH.is_file():
+        if not MODEL_FILE.is_file():
             raise HTTPException(
                 status_code=404,
                 detail="Model not found. Please train the model first."
             )
+        print("Model file exists at:", MODEL_FILE)  # Log model path
 
         # Load the trained model
-        model = joblib.load(MODEL_PATH)
+        model = joblib.load(MODEL_FILE)
+        print("Model loaded successfully.")  # Log model loading status
 
-        # Convert input data into the format expected by the model (numpy array)
-        input_array = np.array([
-            [
-                input_data.sepal_length,
-                input_data.sepal_width,
-                input_data.petal_length,
-                input_data.petal_width
-            ]
-        ])
+        input_array = pd.DataFrame([input_data.dict()])
+        print("Input array prepared:", input_array)
 
-        prediction = model.predict(input_array)        
-        return {"prediction": int(prediction[0])}  # Convert prediction to integer (species label)
-    
+        prediction = model.predict(input_array)
+        predicted_class = int(prediction[0])  # Get the predicted class (integer)
+        predicted_species = SPECIES_MAPPING.get(predicted_class, "Unknown")  # Map to species name
+        print("Prediction result:", predicted_class, predicted_species)  # Log prediction result
+
+        return {
+            "prediction": predicted_class,
+            "species": predicted_species
+        }
+
+
+    except FileNotFoundError as e:
+        print("File not found error:", str(e))
+        raise HTTPException(status_code=404, detail="Model file not found.")
+
+    except ValueError as e:
+        print("Value error during prediction:", str(e))
+        raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error making prediction: {str(e)}"
-        )
+        print("General error during prediction:", str(e))
+        raise HTTPException(status_code=500, detail=f"Error making prediction: {str(e)}")
