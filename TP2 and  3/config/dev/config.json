@@ -1,0 +1,7 @@
+{
+    "ENV_NAME": "development",
+    "DEBUG": true,
+    "DATABASE_URI": "sqlite:///dev.db",
+    "API_URL": "http://localhost:8080"
+}
+
