@@ -5,3 +5,5 @@ fastapi-utils==0.2.1
 pydantic==1.10
 opendatasets
 pytest
+firebase-admin
+

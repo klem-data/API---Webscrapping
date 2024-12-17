@@ -8,6 +8,9 @@ from sklearn.ensemble import RandomForestClassifier
 import joblib
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
+from src.schemas.message import Parameter
+from src.services.parameters import get_parameters, update_parameters
+
 
 # Constants
 KAGGLE_CONFIG_DIR = os.path.expanduser("~/.kaggle")
