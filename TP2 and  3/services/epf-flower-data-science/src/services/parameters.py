@@ -1,12 +1,16 @@
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth
 from pathlib import Path
 
-# Initialize Firebase Admin SDK
+# Initialize Firebase Admin SDK with complete configuration
 if not firebase_admin._apps:
     cred_path = Path(__file__).parent.parent / "config" / "serviceAccountKey.json"
     cred = credentials.Certificate(str(cred_path))
-    firebase_admin.initialize_app(cred)
+    firebase_admin.initialize_app(cred, {
+        'projectId': 'myproject-0412025',
+        'serviceAccountId': 'data-source-api@myproject-0412025.iam.gserviceaccount.com',
+        'authDomain': 'myproject-0412025.firebaseapp.com'
+    })
 
 # Get Firestore client
 db = firestore.client()
