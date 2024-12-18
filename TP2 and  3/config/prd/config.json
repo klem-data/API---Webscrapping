@@ -1,0 +1,7 @@
+{
+    "ENV_NAME": "production",
+    "DEBUG": false,
+    "DATABASE_URI": "postgresql://user:password@prod-db:5432/app",
+    "API_URL": "https://api.myapp.com"
+}
+
