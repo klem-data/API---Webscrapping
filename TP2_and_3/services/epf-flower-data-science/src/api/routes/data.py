@@ -8,7 +8,7 @@ from src.services.data import preprocess_iris_data
 from sklearn.linear_model import LogisticRegression
 import joblib
 import json
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from firestore_client import FirestoreClient
 
 
@@ -39,6 +39,16 @@ class IrisInput(BaseModel):
     SepalWidthCm: float
     PetalLengthCm: float
     PetalWidthCm: float
+
+class ParameterData(BaseModel):
+    data: dict = Field(
+        default={
+            "param1": "default_value1",
+            "param2": "default_value2"
+        },
+        description="Default parameters for Firestore documents"
+    )
+
 
 @router.get("/datasets/{name}", tags=["Datasets"])
 async def download_dataset(name: str):
@@ -193,3 +203,33 @@ async def get_parameters(collection_name: str, document_id: str):
         return parameters
     except FileExistsError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+
+@router.post("/parameters/{collection_name}/{document_id}")
+async def add_parameters(collection_name: str, document_id: str, parameter_data: ParameterData):
+    """
+    Add parameters to a Firestore document.
+    If the document exists, it will overwrite it entirely.
+    """
+    try:
+        result = firestore_client.add(collection_name, document_id, parameter_data.data)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@router.put("/parameters/{collection_name}/{document_id}")
+async def update_parameters(collection_name: str, document_id: str, parameter_data: ParameterData):
+    """
+    Update parameters in a Firestore document.
+    Only updates the specified fields in the document.
+    """
+    try:
+        result = firestore_client.update(collection_name, document_id, parameter_data.data)
+        return result
+    except FileExistsError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
