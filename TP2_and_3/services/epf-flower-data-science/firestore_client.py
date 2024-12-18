@@ -1,15 +1,21 @@
 import google.auth
 from google.cloud import firestore
+from google.oauth2 import service_account
 
+
+path = "TP2_and_3/services/epf-flower-data-science/tp-mde5a-api-firebase-adminsdk-1a1dm-675ab01e07.json"
 
 class FirestoreClient:
     """Wrapper around a database"""
 
     client: firestore.Client
 
-    def __init__(self) -> None:
+    def __init__(self, credentials_path: str = path) -> None:
         """Init the client."""
-        credentials, _ = google.auth.default()
+        
+        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
+        #credentials, _ = google.auth.default()
 
         self.client = firestore.Client(credentials=credentials)
 

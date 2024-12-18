@@ -9,7 +9,12 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 import json
 from pydantic import BaseModel
+from firestore_client import FirestoreClient
+
+
 router = APIRouter()
+firestore_client = FirestoreClient()
+
 
 DATA_PATH = Path("TP2_and_3/services/epf-flower-data-science/src/data")
 DATASET_NAME = "Iris.csv"
@@ -133,6 +138,7 @@ def train_model():
             status_code=500,
             detail=f"Error training the model: {str(e)}"
         )
+
 @router.post("/predict", tags=["Model"])
 def predict(input_data: IrisInput):
     """
@@ -178,3 +184,12 @@ def predict(input_data: IrisInput):
     except Exception as e:
         print("General error during prediction:", str(e))
         raise HTTPException(status_code=500, detail=f"Error making prediction: {str(e)}")
+
+
+@router.get("/parameters/{collection_name}/{document_id}")
+async def get_parameters(collection_name: str, document_id: str):
+    try:
+        parameters = firestore_client.get(collection_name, document_id)
+        return parameters
+    except FileExistsError as e:
+        raise HTTPException(status_code=404, detail=str(e))
