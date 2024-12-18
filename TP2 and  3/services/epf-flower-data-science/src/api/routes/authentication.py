@@ -1,11 +1,10 @@
+
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from firebase_admin import auth, credentials, initialize_app
 from typing import List
 from pathlib import Path
 import firebase_admin
-from firebase_admin import credentials, auth
-from pathlib import Path
 
 router = APIRouter()
 
@@ -14,12 +13,16 @@ if not firebase_admin._apps:
     cred_path = Path(__file__).parent.parent.parent / "config" / "serviceAccountKey.json"
     cred = credentials.Certificate(str(cred_path))
     firebase_admin.initialize_app(cred, {
-        'projectId': 'myproject-0412025',
-        'serviceAccountId': 'data-source-api@myproject-0412025.iam.gserviceaccount.com',
-        'authDomain': 'myproject-0412025.firebaseapp.com'
-    })
+    'projectId': 'myproject-0412025',
+    'authDomain': 'myproject-0412025-94c7f.firebaseapp.com',
+})
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="https://myproject-0412025-94c7f.firebaseapp.com/__/auth/action"
+)
+
 
 @router.post("/register")
 async def register_user(email: str, password: str):
@@ -27,18 +30,21 @@ async def register_user(email: str, password: str):
         user = auth.create_user(
             email=email,
             password=password,
-            email_verified=False
+            email_verified=False,
+            disabled=False
         )
-        # Create custom claims for the user
-        auth.set_custom_user_claims(user.uid, {'role': 'user'})
+        # Send email verification
+        verification_link = auth.generate_email_verification_link(email)
+        # You'll need to implement email sending here
         return {
-            "message": f"User {email} created successfully",
+            "message": f"User {email} created successfully. Please check your email for verification.",
             "uid": user.uid
         }
     except auth.EmailAlreadyExistsError:
         raise HTTPException(status_code=400, detail="Email already exists")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Failed to register user. Please contact support.")
+
 
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -63,3 +69,5 @@ async def logout(token: str = Depends(oauth2_scheme)):
         return {"message": "Successfully logged out"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+

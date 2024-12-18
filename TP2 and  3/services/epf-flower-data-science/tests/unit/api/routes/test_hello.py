@@ -30,3 +30,4 @@ class TestHelloRoute:
         assert response.json() == {
             "message": "Hello testuser, from fastapi test route !"
         }
+

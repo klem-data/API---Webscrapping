@@ -5,3 +5,4 @@ __pycache__/
 src/data/
 src/models/
 credentials.json
+serviceAccountKey.json
